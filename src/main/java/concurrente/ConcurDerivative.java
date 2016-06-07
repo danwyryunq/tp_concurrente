@@ -2,20 +2,22 @@ package concurrente;
 
 public class ConcurDerivative extends Thread {
 
-	private int threads; 
-	private int load ; 
+	protected int threads; 
+	protected int load ; 
 	// An array with the vector elements
-	private double[] elements;
+	protected double[] elements;
 	
 	
 	/** Constructor for a ConcurVector
 	 * @param size, the width of the vector.
 	 * @precondition size > 0. */
-	public ConcurDerivative(int size) {
+	public ConcurDerivative(int size) 
+	{
 		elements = new double[size];
 	}
 
-	public ConcurDerivative(int size, int threads, int load) {
+	public ConcurDerivative(int size, int threads, int load) 
+	{
 		this.threads = threads ; 
 		this.load = load ; 
 		elements = new double[size];
@@ -23,7 +25,8 @@ public class ConcurDerivative extends Thread {
 	
 	
 	/** Returns the dimension of this vector, that is, its width. */
-	public int dimension() {
+	public int dimension() 
+	{
 		return elements.length;
 	}
 	
@@ -31,7 +34,8 @@ public class ConcurDerivative extends Thread {
 	/** Returns the element at position i.
 	 * @param i, the position of the element to be returned.
 	 * @precondition 0 <= i < dimension(). */
-	public double get(int i) {
+	public double get(int i) 
+	{
 		return elements[i];
 	}
 	
@@ -40,19 +44,29 @@ public class ConcurDerivative extends Thread {
 	 * @param i, the position to be set.
 	 * @param d, the value to assign at i.
 	 * @precondition 0 <= i < dimension. */
-	public void set(int i, double d) {
+	public void set(int i, double d) 
+	{
 		elements[i] = d;
 	}
 	
 	
 	/** Assigns the value d to every position of this vector. 
 	 * @param d, the value to assigned. */
-	synchronized public void set(double d) {
-		int threadMaxLoad = elements.length / threads ; 
-		for (int t = 0 ; t < threads ; t ++)
+	public void set(double d) 
+	{
+		int maxLoad = elements.length / threads ;
+		int loadRemainder = elements.length % threads ;
+		
+		int from = 0  ;
+		int to = maxLoad-1 ;
+		if (loadRemainder-- > 0) ++to;
+		partialSet(from,to,d);
+
+		for (int t = 1; t < threads ; t ++)
 		{
-			int from = t * threadMaxLoad; 
-			int to = (from+threadMaxLoad < elements.length)  ? from + threadMaxLoad : from + (elements.length % threads) ; 
+			from = to+1;
+			to = from+maxLoad-1 ; 
+			if (loadRemainder-- > 0) ++to; 
 			partialSet(from,to,d);
 		}
 	}
@@ -62,30 +76,89 @@ public class ConcurDerivative extends Thread {
 		for (; from <= to; ++from)
 			elements[from] = d;
 	}
-	
-	
+
+
 	/** Copies the values from another vector into this vector.
 	 * @param v, a vector from which values are to be copied.
 	 * @precondition dimension() == v.dimension(). */
-	public void assign(ConcurDerivative v) {
-		for (int i = 0; i < dimension(); ++i)
-			set(i, v.get(i));
+	public void assign(ConcurDerivative v) 
+	{
+		int maxLoad = elements.length / threads ;
+		int loadRemainder = elements.length % threads ;
+		
+		int from = 0  ;
+		int to = maxLoad-1 ;
+		if (loadRemainder-- > 0) ++to;
+		partialAssign(from,to,v);
+
+		for (int t = 1; t < threads ; t ++)
+		{
+			from = to+1;
+			to = from+maxLoad-1 ; 
+			if (loadRemainder-- > 0) ++to; 
+			partialAssign(from,to,v);
+		}
+	}
+
+	public void partialAssign(int from, int to, ConcurDerivative v) 
+	{
+		for (; from <= to; ++from)
+			set(from, v.get(from));
 	}
 	
-	
 	/** Applies the absolute value operation to every element in this vector. */
-	synchronized public void abs() {
-		for (int i = 0; i < dimension(); ++i)
-			set(i, Math.abs(get(i)));
+	public void abs() 
+	{
+		int maxLoad = elements.length / threads ;
+		int loadRemainder = elements.length % threads ;
+		
+		int from = 0  ;
+		int to = maxLoad-1 ;
+		if (loadRemainder-- > 0) ++to;
+		partialAbs(from,to);
+
+		for (int t = 1; t < threads ; t ++)
+		{
+			from = to+1;
+			to = from+maxLoad-1 ; 
+			if (loadRemainder-- > 0) ++to; 
+			partialAbs(from,to);
+		}
+	}
+
+	public void partialAbs(int from, int to ) 
+	{
+		for (; from <= to ; ++from)
+			set(from, Math.abs(get(from)));
 	}
 	
 	
 	/** Adds the elements of this vector with the values of another (element-wise).
 	 * @param v, a vector from which to get the second operands.
 	 * @precondition dimension() == v.dimension(). */
-	synchronized public void add(ConcurDerivative v) {
+	public void add(ConcurDerivative v) {
+		int maxLoad = elements.length / threads ;
+		int loadRemainder = elements.length % threads ;
+		
+		int from = 0  ;
+		int to = maxLoad-1 ;
+		if (loadRemainder-- > 0) ++to;
+		partialAdd(from,to,v);
+
+		for (int t = 1; t < threads ; t ++)
+		{
+			from = to+1;
+			to = from+maxLoad-1 ; 
+			if (loadRemainder-- > 0) ++to; 
+			partialAdd(from,to,v);
+		}
+	}
+	
+	public void partialAdd(int from, int to, ConcurDerivative v)
+	{
 		for (int i = 0; i < dimension(); ++i)
 			set(i, get(i) + v.get(i));
+		
 	}
 	
 	
