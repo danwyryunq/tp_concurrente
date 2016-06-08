@@ -48,7 +48,7 @@ public class ConcurDerivative {
 	
 	/** Copies the values from another vector into this vector.
 	 * @param v, a vector from which values are to be copied.
-	 * @precondition dimension() == v.dimension(). */
+	 * @precondition dimension() == derivative.dimension(). */
 	public void assign(ConcurDerivative v) {
 		for (int i = 0; i < dimension(); ++i)
 			set(i, v.get(i));
@@ -64,7 +64,7 @@ public class ConcurDerivative {
 	
 	/** Adds the elements of this vector with the values of another (element-wise).
 	 * @param v, a vector from which to get the second operands.
-	 * @precondition dimension() == v.dimension(). */
+	 * @precondition dimension() == derivative.dimension(). */
 	public void add(ConcurDerivative v) {
 		for (int i = 0; i < dimension(); ++i)
 			set(i, get(i) + v.get(i));
@@ -73,7 +73,7 @@ public class ConcurDerivative {
 	
 	/** Subtracts from the elements of this vector the values of another (element-wise).
 	 * @param v, a vector from which to get the second operands.
-	 * @precondition dimension() == v.dimension(). */
+	 * @precondition dimension() == derivative.dimension(). */
 	public void sub(ConcurDerivative v) {
 		for (int i = 0; i < dimension(); ++i)
 			set(i, get(i) - v.get(i));
@@ -82,7 +82,7 @@ public class ConcurDerivative {
 	
 	/** Multiplies the elements of this vector by the values of another (element-wise).
 	 * @param v, a vector from which to get the second operands.
-	 * @precondition dimension() == v.dimension(). */
+	 * @precondition dimension() == derivative.dimension(). */
 	public void mul(ConcurDerivative v) {
 		for (int i = 0; i < dimension(); ++i)
 			set(i, get(i) * v.get(i));
@@ -91,7 +91,7 @@ public class ConcurDerivative {
 	
 	/** Divides the elements of this vector by the values of another (element-wise).
 	 * @param v, a vector from which to get the second operands.
-	 * @precondition dimension() == v.dimension(). */
+	 * @precondition dimension() == derivative.dimension(). */
 	public void div(ConcurDerivative v) {
 		for (int i = 0; i < dimension(); ++i)
 			set(i, get(i) / v.get(i));

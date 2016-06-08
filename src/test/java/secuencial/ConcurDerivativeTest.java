@@ -38,14 +38,15 @@ public class ConcurDerivativeTest extends TestCase {
 	@Test
 	public void test_set() 
 	{
-		concurrente.ConcurDerivative cd = new concurrente.ConcurDerivative(8,1,2);
+		concurrente.ConcurDerivative cd = new concurrente.ConcurDerivative(8,3,2);
 		cd.set(5d);
 		
 		for (int i = 0 ; i < 8 ; i ++ )
 		{
 			assertEquals(5d, cd.get(i));
+			System.out.println(i);
 		}
-
+/*
 		cd = new concurrente.ConcurDerivative(8,2,2);
 		cd.set(6d);
 		
@@ -68,13 +69,13 @@ public class ConcurDerivativeTest extends TestCase {
 		for (int i = 0 ; i < 10000001 ; i ++ )
 		{
 			assertEquals(8d, cd.get(i));
-		}
+		}*/
 	}
 	
 	
 	/** Copies the values from another vector into this vector.
 	 * @param v, a vector from which values are to be copied.
-	 * @precondition dimension() == v.dimension(). */
+	 * @precondition dimension() == derivative.dimension(). */
 	@Test
 	public void test_assign() {
 		assertTrue(true);
@@ -90,7 +91,7 @@ public class ConcurDerivativeTest extends TestCase {
 	
 	/** Adds the elements of this vector with the values of another (element-wise).
 	 * @param v, a vector from which to get the second operands.
-	 * @precondition dimension() == v.dimension(). */
+	 * @precondition dimension() == derivative.dimension(). */
 	@Test
 	public void test_add() {
 		assertTrue(true);
@@ -99,7 +100,7 @@ public class ConcurDerivativeTest extends TestCase {
 	
 	/** Subtracts from the elements of this vector the values of another (element-wise).
 	 * @param v, a vector from which to get the second operands.
-	 * @precondition dimension() == v.dimension(). */
+	 * @precondition dimension() == derivative.dimension(). */
 	@Test
 	public void test_sub() {
 		assertTrue(true);
@@ -108,7 +109,7 @@ public class ConcurDerivativeTest extends TestCase {
 	
 	/** Multiplies the elements of this vector by the values of another (element-wise).
 	 * @param v, a vector from which to get the second operands.
-	 * @precondition dimension() == v.dimension(). */
+	 * @precondition dimension() == derivative.dimension(). */
 	@Test
 	public void test_mul() {
 		assertTrue(true);
@@ -117,7 +118,7 @@ public class ConcurDerivativeTest extends TestCase {
 	
 	/** Divides the elements of this vector by the values of another (element-wise).
 	 * @param v, a vector from which to get the second operands.
-	 * @precondition dimension() == v.dimension(). */
+	 * @precondition dimension() == derivative.dimension(). */
 	@Test
 	public void test_div() {
 		assertTrue(true);
