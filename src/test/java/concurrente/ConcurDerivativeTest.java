@@ -1,8 +1,7 @@
-package secuencial;
-
-import org.junit.Test;
+package concurrente;
 
 import junit.framework.TestCase;
+import org.junit.Test;
 
 public class ConcurDerivativeTest extends TestCase {
 
@@ -38,34 +37,41 @@ public class ConcurDerivativeTest extends TestCase {
 	@Test
 	public void test_set() 
 	{
-		ConcurDerivative cd = new ConcurDerivative(8);
-		cd.set(5d);
-		for (int i = 0; i < 8; i++) {
-			assertEquals(5d, cd.get(i));
-		}
+		for (int test = 0 ; test < 10000 ; test++) {
+			ConcurDerivative cd = new ConcurDerivative(8, 1, 2);
+			cd.set(5d);
+			for (int i = 0; i < 8; i++) {
+				assertEquals(5d, cd.get(i));
+			}
+			cd.set(6d);
+			for (int i = 0 ; i < 8 ; i ++ )
+			{
+				assertEquals(6d, cd.get(i));
+			}
 
-		cd = new ConcurDerivative(8);
-		cd.set(6d);
-
-		for (int i = 0 ; i < 8 ; i ++ )
-		{
-			assertEquals(6d, cd.get(i));
-		}
+//			cd = new ConcurDerivative(8,2,2);
+//			cd.set(6d);
 //
-		cd = new ConcurDerivative(8);
-		cd.set(7d);
-
-		for (int i = 0 ; i < 8 ; i ++ )
-		{
-			assertEquals(7d, cd.get(i));
-		}
-
-		cd = new ConcurDerivative(100001);
-		cd.set(8d);
-
-		for (int i = 0 ; i < 100001 ; i ++ )
-		{
-			assertEquals(8d, cd.get(i));
+//			for (int i = 0 ; i < 8 ; i ++ )
+//			{
+//				assertEquals(6d, cd.get(i));
+//			}
+////
+//			cd = new ConcurDerivative(8,3,2);
+//			cd.set(7d);
+//
+//			for (int i = 0 ; i < 8 ; i ++ )
+//			{
+//				assertEquals(7d, cd.get(i));
+//			}
+//
+//			cd = new ConcurDerivative(100001,50,15);
+//			cd.set(8d);
+//
+//			for (int i = 0 ; i < 100001 ; i ++ )
+//			{
+//				assertEquals(8d, cd.get(i));
+//			}
 		}
 	}
 	

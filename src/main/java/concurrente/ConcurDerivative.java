@@ -1,15 +1,14 @@
 package concurrente;
 
-import java.util.Arrays;
-
-public class ConcurDerivative extends Thread
+public class ConcurDerivative
 {
 	protected int threads; 
 	protected int load ; 
 	// An array with the vector elements
 	protected double[] elements;
-	protected boolean[] threadRunning ;
-	protected boolean fullyDependentTaskRunning = false ;
+	public boolean[] runningThreads;
+	public boolean taskIsRunning;
+	public int numRunningThreads = 0 ;
 
 	class ThreadVectorLimits {
 		public int from, to, threadIdx;
@@ -31,26 +30,26 @@ public class ConcurDerivative extends Thread
 
 	protected ThreadVectorLimits[] threadVectorLimits;
 
+
 	/** Constructor for a ConcurVector
 	 * @param size, the width of the vector.
-	 * @precondition size > 0. */
-	public ConcurDerivative(int size) 
-	{
-		elements = new double[size];
-	}
-
-	public ConcurDerivative(int size, int threads, int load) 
+	 * @precondition size > 0 && threads >= 1 && load <= size%threads
+	 */
+	public ConcurDerivative(int size, int threads, int load)
 	{
 		this.threads = threads ; 
 		this.load = load ; 
 		elements = new double[size];
-		threadRunning = new boolean[threads];
-		Arrays.fill(threadRunning, false);
-		initializeOpLimits();
+		runningThreads = new boolean[threads];
+
+		for (int t = 0 ; t < threads ; t++ )
+			runningThreads[t] = false;
+
+		calculateThreadVectorLimits();
 	}
 
-	protected void initializeOpLimits() {
-
+	protected void calculateThreadVectorLimits()
+	{
 		threadVectorLimits = new ThreadVectorLimits[threads];
 
 		int maxLoad = elements.length / threads ;
@@ -83,55 +82,68 @@ public class ConcurDerivative extends Thread
 	 * @precondition 0 <= i < dimension(). */
 	synchronized public double get(int i)
 	{
-		while (fullyDependentTaskRunning || inRunningThreadLimit(i) )
+		while (taskIsRunning || anyThreadRunning()) {
 			try {
 				wait();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-		System.out.println("get");
+		}
 		return elements[i];
 	}
 
-	private boolean inRunningThreadLimit(int i) {
-		for (int t = 0 ; t < threads ; t++)
-			if ( i >= threadVectorLimits[t].from && i <= threadVectorLimits[t].to)
-				return threadRunning[ threadVectorLimits[t].threadIdx ];
-		return false;
+	protected boolean anyThreadRunning() {
+		return numRunningThreads > 0 ;
+//		for(int i = 0 ; i < threads ; i++)
+//			if (runningThreads[i]) return true ;
+//		return false;
 	}
 
-
-	/** Assigns the value d to the position i of this vector. 
+	/** Assigns the value d to the position i of this vector.
 	 * @param i, the position to be set.
 	 * @param d, the value to assign at i.
 	 * @precondition 0 <= i < dimension. */
-	synchronized public void set(int i, double d)
+	public void set(int i, double d)
 	{
-		while (fullyDependentTaskRunning || inRunningThreadLimit(i) )
+		elements[i] = d;
+	}
+
+	/** Assigns the value d to every position of this vector. 
+	 * @param d, the value to assigned. */
+	synchronized public void set(double d)
+	{
+		taskIsRunning = true;
+		while (anyThreadRunning())
 			try {
 				wait();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-		System.out.println("set");
-		elements[i] = d;
-	}
-	
-	
-	/** Assigns the value d to every position of this vector. 
-	 * @param d, the value to assigned. */
-	public void set(double d)
-	{
+		numRunningThreads = threads;
 		for (int t = 0 ; t < threads ; t++)
 		{
 			ConcurOpRunnable operation = new ConcurOpRunnable(this, threadVectorLimits[t]) {
 				public double d ;
 				public ConcurOpRunnable setD(double d) { this.d = d ; return this; }
-				public void run() { derivative.partialSet(opLimits,d); }
+				public void run() {
+					derivative.partialSet(opLimits,d);
+				}
 			}.setD(d);
 
 			new Thread(operation).start();
 		}
+
+		while (anyThreadRunning()) {
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+
+		taskIsRunning = false;
+		notifyAll();
+
 	}
 
 	/** Copies the values from another vector into this vector.
@@ -241,65 +253,55 @@ public class ConcurDerivative extends Thread
 	 *  @param window, an integer with the number of element to each side of
 	 *         the current element to be considered by the method.
 	 *  @return a ConcurDerivative with the result of the derivative procedure. */
-	public ConcurDerivative differentiate() {
-		ConcurDerivative result = new ConcurDerivative(dimension() - 2);
+	public ConcurDerivative differentiate()
+	{
+		ConcurDerivative result = new ConcurDerivative(dimension() - 2,threads,load);
 		for (int i = 1; i < dimension() - 1; ++i)
 			result.set(i - 1, (get(i+1) - get(i-1)) / 2);
 		return result;
 	}
 
 
-
 	synchronized protected void partialSet(ThreadVectorLimits limits, double d)
 	{
-		while (fullyDependentTaskRunning || threadRunning[limits.threadIdx] )
-		{
-			try {
-				wait();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-
-		threadRunning[limits.threadIdx] = true;
-		System.out.println("set" + limits.threadIdx);
-
+//		this.runningThreads[limits.threadIdx] = true;
 		for (int i = limits.from; i <= limits.to; ++i)
 			elements[i] = d;
-
-		threadRunning[limits.threadIdx] = false;
-		notify();
+//		this.runningThreads[limits.threadIdx] = false;
+		numRunningThreads--;
+		notifyAll();
 	}
 
 	public void partialAssign(ThreadVectorLimits limits, ConcurDerivative v)
 	{
-		for (; limits.from <= limits.to; ++limits.from)
-			set(limits.from, v.get(limits.from));
+		for (int i = limits.from; i <= limits.to; ++i)
+			set(i, v.get(i));
 	}
 
 	public void partialAbs(ThreadVectorLimits limits)
 	{
-		for (; limits.from <= limits.to; ++limits.from)
-			set(limits.from, Math.abs(get(limits.from)));
+		for (int i = limits.from; i <= limits.to; ++i)
+			set(i, Math.abs(get(i)));
 	}
 
 	public void partialAdd(ThreadVectorLimits limits, ConcurDerivative v)
 	{
-		for (; limits.from <= limits.to; ++limits.from)
-			set(limits.from, get(limits.from) + v.get(limits.from));
+		for (int i = limits.from; i <= limits.to; ++i)
+			set(i, get(i) + v.get(i));
 	}
 
-	public void partialSub(ThreadVectorLimits limits , ConcurDerivative v) {
-		for (; limits.from <= limits.to; ++limits.from)
-			set(limits.from, get(limits.from) - v.get(limits.from));
+	public void partialSub(ThreadVectorLimits limits , ConcurDerivative v)
+	{
+		for (int i = limits.from; i <= limits.to; ++i)
+			set(i, get(i) - v.get(i));
 	}
 
 	public void partialDiv(ThreadVectorLimits limits , ConcurDerivative v) {
-		for (; limits.from <= limits.to; ++limits.from)
-			set(limits.from, get(limits.from) / v.get(limits.from));
+		for (int i = limits.from; i <= limits.to; ++i)
+			set(i, get(i) / v.get(i));
 	}
 	public void partialMul(ThreadVectorLimits limits , ConcurDerivative v) {
-		for (; limits.from <= limits.to; ++limits.from)
-			set(limits.from, get(limits.from) * v.get(limits.from));
+		for (int i = limits.from; i <= limits.to; ++i)
+			set(i, get(i) * v.get(i));
 	}
 }
