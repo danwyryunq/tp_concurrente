@@ -16,7 +16,7 @@ public class ConcurQueue<T>  {
         return count==0 ;
     }
 
-    synchronized public boolean queue(T context) {
+    synchronized public boolean enqueue(T context) {
         count ++;
         return contexts.add(context);
     }

@@ -51,10 +51,9 @@ public class ConcurDerivative
 
 	/** Assigns the value d to every position of this vector.
 	 * @param d, the value to assigned. */
-	public void set(double d) {
-		ConcurOpContext coc = new ConcurOpContext(PartialConcurOperation.SET, this, d);
-		PartialConcurOperation op = new PartialConcurOperation(coc, barrier);
-		opRunner.enqueueOperation(op);
+	public void set(double d)
+	{
+		opRunner.distribute(new ConcDerOpContext(this, PartialConcDerOp.SET, d));
 		barrier.waitForIt();
 	}
 

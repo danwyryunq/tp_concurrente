@@ -1,10 +1,10 @@
 package concurrente;
 
-class PartialConcurOperation extends Thread
+class PartialConcDerOp
 {
-    public ConcurOpContext coc;
+    public final ConcDerOpContext coc;
     public final Barrier barrier;
-    public int segment;
+    public final int segment;
     public int from ;
     public int to ;
 
@@ -17,13 +17,27 @@ class PartialConcurOperation extends Thread
     public static final int ASSIGN= 7;
     public static final int DIFFERENTIATE = 8;
 
-    public PartialConcurOperation(ConcurOpContext c, Barrier b)
+    public PartialConcDerOp(ConcDerOpContext c, Barrier b, int numThreads, int seg)
     {
+        segment = seg ;
         coc = c ;
         barrier  = b;
+
+        calculateFromTo(numThreads);
+
     }
 
-    public void run() {
+    protected void calculateFromTo(int numThreads)
+    {
+        int threadLoad = coc.target.dimension() / numThreads;
+        int remainder = coc.target.dimension() % numThreads;
+
+        from = (segment * threadLoad) + ((remainder <= segment) ? remainder : segment);
+        to = from + ((remainder <  segment) ? threadLoad-1 : threadLoad );
+
+    }
+
+    public void perform() {
         switch (coc.operation) {
             case DIV:
                 partialDiv();

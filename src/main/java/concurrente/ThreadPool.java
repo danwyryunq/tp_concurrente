@@ -3,28 +3,29 @@ package concurrente;
 
 public class ThreadPool {
 
-    final public ConcurQueue<PartialConcurOperation> q = new ConcurQueue<PartialConcurOperation>();
-    protected Thread[] threads ;
+    final public ConcurQueue<PartialConcDerOp> q = new ConcurQueue<PartialConcDerOp>();
+    protected WorkerThread[] threads ;
+    private final Barrier barrier;
 
-    public ThreadPool(final Barrier barrier, final int numThreads)
+
+    public ThreadPool(final Barrier b, final int numThreads)
     {
-        threads = new Thread[numThreads];
+        barrier = b;
+        threads = new WorkerThread[numThreads];
         for (int i = 0 ; i < numThreads ; i++)
         {
-            threads[i] = new Thread() {
-                public void run()
-                {
-                    while (true) {
-                        PartialConcurOperation op = q.dequeue();
-                        op.start();
-                    }
-                }
-            };
+            threads[i] = new WorkerThread(q, barrier);
             threads[i].start();
         }
     }
 
-    synchronized public void enqueueOperation(PartialConcurOperation op) {
-        q.queue(op);
+    synchronized public void distribute(ConcDerOpContext coc)
+    {
+        for (int t =0 ; t < threads.length ; ++t )
+        {
+            PartialConcDerOp op = new PartialConcDerOp(coc,barrier,threads.length,t);
+            threads[t].queue.enqueue(op);
+        }
+
     }
 }

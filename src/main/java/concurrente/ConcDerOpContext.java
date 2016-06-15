@@ -2,24 +2,24 @@ package concurrente;
 
 
 
-public class ConcurOpContext {
+public class ConcDerOpContext {
     public int operation;
     public ConcurDerivative target ;
     public ConcurDerivative concurDerivParam1;
     public double doubleAritParam1;
 
-    public ConcurOpContext(int op, ConcurDerivative cd) {
+    public ConcDerOpContext(ConcurDerivative cd, int op) {
         operation = op ;
         target = cd ;
     }
 
-    public ConcurOpContext(int op, ConcurDerivative cd, ConcurDerivative param1) {
+    public ConcDerOpContext(ConcurDerivative cd, int op, ConcurDerivative param1) {
         operation = op ;
         target = cd ;
         concurDerivParam1 = param1;
     }
 
-    public ConcurOpContext(int op, ConcurDerivative cd, double param1) {
+    public ConcDerOpContext(ConcurDerivative cd, int op, double param1) {
         operation = op ;
         target = cd ;
         doubleAritParam1 = param1 ;
