@@ -21,7 +21,7 @@ public class ConcurDerivative
 		this.load = load ; 
 		elements = new double[size];
 
-		barrier = new Barrier(threads);
+		barrier = new Barrier(threads+1);
 		opRunner = new ThreadPool(barrier, threads);
 	}
 
@@ -53,7 +53,8 @@ public class ConcurDerivative
 	 * @param d, the value to assigned. */
 	public void set(double d)
 	{
-		opRunner.distribute(new ConcDerOpContext(this, PartialConcDerOp.SET, d));
+		ConcDerOpContext<Object> context = new ConcDerOpContext<Object>(this, PartialConcDerOp.SET, d);
+		opRunner.distribute(context);
 		barrier.waitForIt();
 	}
 
@@ -61,25 +62,31 @@ public class ConcurDerivative
 	/** Copies the values from another vector into this vector.
 	 * @param v, a vector from which values are to be copied.
 	 * @precondition dimension() == derivative.dimension(). */
-	public void assign(ConcurDerivative v) {
-		for (int i = 0; i < dimension(); ++i)
-			set(i, v.get(i));
+	public void assign(ConcurDerivative v)
+	{
+		ConcDerOpContext<Object> context = new ConcDerOpContext<Object>(this, PartialConcDerOp.ASSIGN, v);
+		opRunner.distribute(context);
+		barrier.waitForIt();
 	}
 
 
 	/** Applies the absolute value operation to every element in this vector. */
-	public void abs() {
-		for (int i = 0; i < dimension(); ++i)
-			set(i, Math.abs(get(i)));
+	public void abs()
+	{
+		ConcDerOpContext<Object> context = new ConcDerOpContext<Object>(this, PartialConcDerOp.ABS);
+		opRunner.distribute(context);
+		barrier.waitForIt();
 	}
 
 
 	/** Adds the elements of this vector with the values of another (element-wise).
 	 * @param v, a vector from which to get the second operands.
 	 * @precondition dimension() == derivative.dimension(). */
-	public void add(ConcurDerivative v) {
-		for (int i = 0; i < dimension(); ++i)
-			set(i, get(i) + v.get(i));
+	public void add(ConcurDerivative v)
+	{
+		ConcDerOpContext<Object> context = new ConcDerOpContext<Object>(this, PartialConcDerOp.ADD, v);
+		opRunner.distribute(context);
+		barrier.waitForIt();
 	}
 
 
@@ -87,8 +94,9 @@ public class ConcurDerivative
 	 * @param v, a vector from which to get the second operands.
 	 * @precondition dimension() == derivative.dimension(). */
 	public void sub(ConcurDerivative v) {
-		for (int i = 0; i < dimension(); ++i)
-			set(i, get(i) - v.get(i));
+		ConcDerOpContext<Object> context = new ConcDerOpContext<Object>(this, PartialConcDerOp.SUB, v);
+		opRunner.distribute(context);
+		barrier.waitForIt();
 	}
 
 
@@ -96,8 +104,9 @@ public class ConcurDerivative
 	 * @param v, a vector from which to get the second operands.
 	 * @precondition dimension() == derivative.dimension(). */
 	public void mul(ConcurDerivative v) {
-		for (int i = 0; i < dimension(); ++i)
-			set(i, get(i) * v.get(i));
+		ConcDerOpContext<Object> context = new ConcDerOpContext<Object>(this, PartialConcDerOp.MUL, v);
+		opRunner.distribute(context);
+		barrier.waitForIt();
 	}
 
 
@@ -105,8 +114,9 @@ public class ConcurDerivative
 	 * @param v, a vector from which to get the second operands.
 	 * @precondition dimension() == derivative.dimension(). */
 	public void div(ConcurDerivative v) {
-		for (int i = 0; i < dimension(); ++i)
-			set(i, get(i) / v.get(i));
+		ConcDerOpContext<Object> context = new ConcDerOpContext<Object>(this, PartialConcDerOp.DIV, v);
+		opRunner.distribute(context);
+		barrier.waitForIt();
 	}
 
 
@@ -115,11 +125,17 @@ public class ConcurDerivative
 	 *  @param window, an integer with the number of element to each side of
 	 *         the current element to be considered by the method.
 	 *  @return a ConcurDerivative with the result of the derivative procedure. */
-	public ConcurDerivative differentiate() {
+	public ConcurDerivative differentiate()
+	{
 		ConcurDerivative result = new ConcurDerivative(dimension() - 2, threads, load);
-		for (int i = 1; i < dimension() - 1; ++i)
-			result.set(i - 1, (get(i+1) - get(i-1)) / 2);
-		return result;
+
+		ConcDerOpContext context = new ConcDerOpContext<ConcurDerivative>(this, PartialConcDerOp.DIFFERENTIATE);
+		context.result = result ;
+
+		opRunner.distribute(context);
+		barrier.waitForIt();
+
+		return result ;
 	}
 
 }

@@ -4,7 +4,7 @@ import java.util.*;
 
 public class ConcurQueue<T>  {
 
-    private List<T> contexts = new LinkedList<T>();
+    private List<T> elements = new LinkedList<T>();
     private int count = 0 ;
 
 
@@ -17,13 +17,14 @@ public class ConcurQueue<T>  {
     }
 
     synchronized public boolean enqueue(T context) {
+        boolean result = elements.add(context);
         count ++;
-        return contexts.add(context);
+        notify();
+        return result;
     }
 
-    synchronized  public T dequeue()
+    synchronized public T dequeue()
     {
-
         while (count == 0 )
         {
             try {
@@ -33,10 +34,9 @@ public class ConcurQueue<T>  {
             }
         }
 
-        T result = contexts.get(0);
-        contexts.remove(0);
+        T result = elements.get(0);
+        elements.remove(0);
         count--;
-        notify();
 
         return result;
     }

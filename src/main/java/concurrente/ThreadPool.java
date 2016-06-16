@@ -1,9 +1,8 @@
 package concurrente;
 
 
-public class ThreadPool {
-
-    final public ConcurQueue<PartialConcDerOp> q = new ConcurQueue<PartialConcDerOp>();
+public class ThreadPool
+{
     protected WorkerThread[] threads ;
     private final Barrier barrier;
 
@@ -14,7 +13,8 @@ public class ThreadPool {
         threads = new WorkerThread[numThreads];
         for (int i = 0 ; i < numThreads ; i++)
         {
-            threads[i] = new WorkerThread(q, barrier);
+            ConcurQueue<PartialConcDerOp> q = new ConcurQueue<PartialConcDerOp>();
+            threads[i] = new WorkerThread(q, barrier, i);
             threads[i].start();
         }
     }
@@ -26,6 +26,5 @@ public class ThreadPool {
             PartialConcDerOp op = new PartialConcDerOp(coc,barrier,threads.length,t);
             threads[t].queue.enqueue(op);
         }
-
     }
 }
