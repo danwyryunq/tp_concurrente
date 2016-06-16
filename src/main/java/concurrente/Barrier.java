@@ -16,7 +16,6 @@ public class Barrier
     synchronized public void waitForIt()
     {
         --pendingForReset;
-        int currentPending = pendingForReset ;
 
         if (pendingForReset >  0 )
         {
