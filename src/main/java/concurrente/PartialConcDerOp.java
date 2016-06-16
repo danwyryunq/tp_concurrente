@@ -2,7 +2,7 @@ package concurrente;
 
 class PartialConcDerOp
 {
-    public final ConcDerOpContext coc;
+    public final ConcDerOpContext context;
     public final Barrier barrier;
     public final int segment;
     public int from ;
@@ -20,9 +20,9 @@ class PartialConcDerOp
     public PartialConcDerOp(ConcDerOpContext c, Barrier b, int numThreads, int seg)
     {
         segment = seg ;
-        coc = c ;
+        context = c ;
         barrier  = b;
-        calculateFromTo(coc.target, numThreads);
+        calculateFromTo(context.target, numThreads);
     }
 
     protected void calculateFromTo(ConcurDerivative cd, int numThreads)
@@ -35,7 +35,7 @@ class PartialConcDerOp
     }
 
     public void perform() {
-        switch (coc.operation) {
+        switch (context.operation) {
             case DIV:
                 partialDiv();
                 break;
@@ -67,55 +67,55 @@ class PartialConcDerOp
 
     private void partialAbs() {
         for (int i = from; i <= to; ++i)
-            coc.target.set(i, Math.abs(coc.target.get(i))) ;
+            context.target.set(i, Math.abs(context.target.get(i))) ;
     }
 
     private void partialAdd() {
         for (int i = from; i <= to; ++i)
-            coc.target.set(i, coc.target.get(i) + coc.concurDerivParam1.get(i));
+            context.target.set(i, context.target.get(i) + context.concurDerivParam1.get(i));
     }
 
     private void partialSub() {
         for (int i = from; i <= to; ++i)
-            coc.target.set(i, coc.target.get(i) - coc.concurDerivParam1.get(i));
+            context.target.set(i, context.target.get(i) - context.concurDerivParam1.get(i));
     }
 
     private void partialMul() {
         for (int i = from; i <= to; ++i)
-            coc.target.set(i, coc.target.get(i) * coc.concurDerivParam1.get(i));
+            context.target.set(i, context.target.get(i) * context.concurDerivParam1.get(i));
     }
 
     private void partialDiv() {
         for (int i = from; i <= to; ++i)
-            coc.target.set(i, coc.target.get(i) / coc.concurDerivParam1.get(i));
+            context.target.set(i, context.target.get(i) / context.concurDerivParam1.get(i));
     }
 
     private void partialSet() {
         for (int i = from; i <= to; ++i)
-            coc.target.set(i, coc.doubleAritParam1);
+            context.target.set(i, context.doubleAritParam1);
     }
 
     private void partialAssign() {
         for (int i = from; i <= to; ++i)
-            coc.target.set(i, coc.concurDerivParam1.get(i));
+            context.target.set(i, context.concurDerivParam1.get(i));
     }
 
     private void partialDifferentiate()
     {
-        ConcurDerivative target = coc.target ;
-        ConcurDerivative result = (ConcurDerivative) coc.result ;
+        ConcurDerivative target = context.target ;
+        ConcurDerivative result = (ConcurDerivative) context.result ;
 
 //        if (segment > 0)
-//            coc.waitForSegmentsCompletion(segment-1);
+//            context.waitForSegmentsCompletion(segment-1);
 
-        calculateFromTo(result, coc.target.threads);
+        calculateFromTo(result, context.target.threads);
 
         for (int i = from ; i <= to ; ++i)
         {
             result.set(i, (target.get(i + 2) - target.get(i)) / 2);
         }
 
-//        coc.completeSegment(segment);
+//        context.completeSegment(segment);
 
     }
 
