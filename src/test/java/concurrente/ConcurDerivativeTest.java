@@ -455,6 +455,17 @@ public class ConcurDerivativeTest extends TestCase {
 
 		result = cd.differentiate();
 
+		assertEquals(1d, result.get(0));
+		assertEquals(1d, result.get(1));
+		assertEquals(1d, result.get(2));
+
+
+		cd = new ConcurDerivative(5, 1, 2);
+
+		for (int i = 0; i < 5; i++)
+			cd.set(i,(double)i);
+
+		result = cd.differentiate();
 
 		assertEquals(1d, result.get(0));
 		assertEquals(1d, result.get(1));
@@ -467,8 +478,6 @@ public class ConcurDerivativeTest extends TestCase {
 			cd.set(i,(double)i);
 
 		result = cd.differentiate();
-
-
 
 		assertEquals(1d, result.get(0));
 		assertEquals(1d, result.get(1));
