@@ -3,10 +3,10 @@ package concurrente;
 
 public class WorkerThread extends Thread {
     private final Barrier barrier;
-    public ConcurQueue<PartialConcDerOp> queue;
+    public ConcurQueue<ConcurOp> queue;
     private int  threadId;
 
-    public WorkerThread(ConcurQueue<PartialConcDerOp> q, Barrier b, int id) {
+    public WorkerThread(ConcurQueue<ConcurOp> q, Barrier b, int id) {
         queue = q;
         barrier = b;
         threadId = id;
@@ -14,10 +14,11 @@ public class WorkerThread extends Thread {
 
     public void run()
     {
-        while (true )
+        boolean goOn = true;
+        while ( goOn )
         {
-            PartialConcDerOp op = queue.dequeue();
-            op.perform();
+            ConcurOp op = queue.dequeue();
+            goOn = op.perform();
         }
     }
 }

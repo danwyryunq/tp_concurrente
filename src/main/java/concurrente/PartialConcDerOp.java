@@ -1,6 +1,6 @@
 package concurrente;
 
-class PartialConcDerOp
+class PartialConcDerOp extends ConcurOp
 {
     public final ConcDerOpContext context;
     public final Barrier barrier;
@@ -34,7 +34,7 @@ class PartialConcDerOp
         to   = from + ((remainder <= segment) ? threadLoad-1 : threadLoad );
     }
 
-    public void perform() {
+    public boolean perform() {
         switch (context.operation) {
             case DIV:
                 partialDiv();
@@ -62,7 +62,7 @@ class PartialConcDerOp
                 break;
         }
         barrier.waitForIt();
-
+        return true ;
     }
 
     private void partialAbs() {

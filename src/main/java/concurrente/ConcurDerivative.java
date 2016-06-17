@@ -138,4 +138,11 @@ public class ConcurDerivative
 		return result ;
 	}
 
+	protected void finalize() throws Throwable {
+		try {
+			opRunner.killThreads();
+		} finally {
+			super.finalize();
+		}
+	}
 }

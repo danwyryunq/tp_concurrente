@@ -13,9 +13,18 @@ public class ThreadPool
         threads = new WorkerThread[numThreads];
         for (int i = 0 ; i < numThreads ; i++)
         {
-            ConcurQueue<PartialConcDerOp> q = new ConcurQueue<PartialConcDerOp>();
+            ConcurQueue<ConcurOp> q = new ConcurQueue<ConcurOp>();
             threads[i] = new WorkerThread(q, barrier, i);
             threads[i].start();
+        }
+    }
+
+    synchronized public void killThreads()
+    {
+        for (int t =0 ; t < threads.length ; ++t )
+        {
+            ConcurOp op = new ConcurOp() { public boolean perform() {return false; } };
+            threads[t].queue.enqueue(op);
         }
     }
 
